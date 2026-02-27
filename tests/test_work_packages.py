@@ -220,6 +220,18 @@ def test_update_work_package_percent_done(client, api_url, wp_factory):
 
 
 @responses.activate
+def test_update_work_package_start_date(client, api_url, wp_factory):
+    responses.add(responses.GET, api_url("work_packages/1"), json=wp_factory(lock_version=0))
+    responses.add(responses.PATCH, api_url("work_packages/1"), json=wp_factory())
+
+    update_work_package(client, id=1, start_date="2026-03-01")
+
+    body = json.loads(responses.calls[1].request.body)
+    assert body["startDate"] == "2026-03-01"
+    assert "dueDate" not in body
+
+
+@responses.activate
 def test_update_work_package_parent_id(client, api_url, wp_factory):
     responses.add(responses.GET, api_url("work_packages/1"), json=wp_factory(lock_version=0))
     responses.add(responses.PATCH, api_url("work_packages/1"), json=wp_factory())
