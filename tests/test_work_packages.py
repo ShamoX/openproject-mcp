@@ -219,6 +219,28 @@ def test_update_work_package_percent_done(client, api_url, wp_factory):
     assert body["percentageDone"] == 75
 
 
+@responses.activate
+def test_update_work_package_parent_id(client, api_url, wp_factory):
+    responses.add(responses.GET, api_url("work_packages/1"), json=wp_factory(lock_version=0))
+    responses.add(responses.PATCH, api_url("work_packages/1"), json=wp_factory())
+
+    update_work_package(client, id=1, parent_id=42)
+
+    body = json.loads(responses.calls[1].request.body)
+    assert body["_links"]["parent"]["href"] == "/api/v3/work_packages/42"
+
+
+@responses.activate
+def test_update_work_package_remove_parent(client, api_url, wp_factory):
+    responses.add(responses.GET, api_url("work_packages/1"), json=wp_factory(lock_version=0))
+    responses.add(responses.PATCH, api_url("work_packages/1"), json=wp_factory())
+
+    update_work_package(client, id=1, parent_id=0)
+
+    body = json.loads(responses.calls[1].request.body)
+    assert body["_links"]["parent"]["href"] is None
+
+
 # ---------------------------------------------------------------------------
 # add_comment / get_comments
 # ---------------------------------------------------------------------------
