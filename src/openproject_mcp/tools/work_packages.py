@@ -20,6 +20,8 @@ def _format_wp(wp: dict) -> dict:
         "author": links.get("author", {}).get("title", ""),
         "project": links.get("project", {}).get("title", ""),
         "parent_id": _extract_id(links.get("parent", {}).get("href", "")),
+        "category_id": _extract_id(links.get("category", {}).get("href", "")),
+        "category": links.get("category", {}).get("title", ""),
         "percent_done": wp.get("percentageDone", 0),
         "estimated_hours": wp.get("estimatedTime"),
         "remaining_hours": wp.get("remainingTime"),
@@ -144,6 +146,7 @@ def create_work_package(
     description: str = "",
     assignee_id: int | None = None,
     parent_id: int | None = None,
+    category_id: int | None = None,
     estimated_hours: float | None = None,
     priority_id: int | None = None,
     start_date: str | None = None,
@@ -153,6 +156,7 @@ def create_work_package(
     Create a new work package (task, subtask, bug, etc.).
 
     - parent_id: set to make this a subtask of another work package
+    - category_id: get valid IDs from list_categories()
     - type_id: get valid IDs from list_types()
     - estimated_hours: e.g. 2.5 for 2h 30m
     """
@@ -169,6 +173,8 @@ def create_work_package(
         data["_links"]["assignee"] = {"href": f"/api/v3/users/{assignee_id}"}
     if parent_id:
         data["_links"]["parent"] = {"href": f"/api/v3/work_packages/{parent_id}"}
+    if category_id:
+        data["_links"]["category"] = {"href": f"/api/v3/categories/{category_id}"}
     if priority_id:
         data["_links"]["priority"] = {"href": f"/api/v3/priorities/{priority_id}"}
     if estimated_hours is not None:
@@ -190,6 +196,7 @@ def update_work_package(
     status_id: int | None = None,
     assignee_id: int | None = None,
     parent_id: int | None = None,
+    category_id: int | None = None,
     percent_done: int | None = None,
     estimated_hours: float | None = None,
     remaining_hours: float | None = None,
@@ -201,6 +208,7 @@ def update_work_package(
 
     - status_id: get valid IDs from list_statuses()
     - parent_id: move the WP under a new parent (set to 0 to remove the parent)
+    - category_id: get valid IDs from list_categories()
     - percent_done: 0-100
     - start_date / due_date: YYYY-MM-DD
     """
@@ -219,6 +227,8 @@ def update_work_package(
     if parent_id is not None:
         href = f"/api/v3/work_packages/{parent_id}" if parent_id != 0 else None
         data["_links"]["parent"] = {"href": href}
+    if category_id is not None:
+        data["_links"]["category"] = {"href": f"/api/v3/categories/{category_id}"}
     if percent_done is not None:
         data["percentageDone"] = percent_done
     if estimated_hours is not None:
